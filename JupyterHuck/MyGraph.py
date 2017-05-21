@@ -240,7 +240,7 @@ class MyGraphWindow(QMainWindow):
         
     def addPickerToValue(self,kwargs):
         #pickerが無いとlassoで選択できないのでユーザーが引数にpickerを指定しなかった場合はpickerを加える
-        if 'picker' in kwargs.keys():
+        if 'picker' in list(kwargs.keys()):
             return kwargs
         else:
             kwargs['picker']=self.PICKER

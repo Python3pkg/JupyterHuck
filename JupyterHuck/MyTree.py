@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QApplication,QWidget,QFileDialog
 def transformMyTree(mytree,parent=None):
     #MyTreeをMyTreeRawに変換する pickleのため
     raw=MyTreeRaw(parent=parent,name=mytree.name)
-    for key,value in mytree.getChildren().items():
+    for key,value in list(mytree.getChildren().items()):
         if isinstance(value,MyTree):
             raw[key]=transformMyTree(value,raw)
         else:
@@ -24,7 +24,7 @@ def transformMyTree(mytree,parent=None):
 def transformMyTreeRaw(tree,parent=None):
     #MyTreeRawをMyTreeに変換する unpickleのため
     result=MyTree(parent=parent,name=tree.name)
-    for key,value in tree.items():
+    for key,value in list(tree.items()):
         if isinstance(value,MyTreeRaw):
             result.add(ref=transformMyTreeRaw(value,result),label=key)
         else:
@@ -34,7 +34,7 @@ def transformMyTreeRaw(tree,parent=None):
 def transformMyRootTreeRaw(tree,current_path):
     #MyTreeRawをMyRootTreeに変換する unpickleのため
     result=MyRootTree(name=tree.name)
-    for key,value in tree.items():
+    for key,value in list(tree.items()):
         if isinstance(value,MyTreeRaw):
             result.add(ref=transformMyTreeRaw(value,result),label=key)
         else:
@@ -67,7 +67,7 @@ class MyTree(QObject):
         self.parent=parent #nodeはroot以外必ず親を持つ
         self.name=name
         if not children==None:
-            for key,item in children.items():
+            for key,item in list(children.items()):
                 self.__dict__[key]=item
         
     def __reduce_ex__(self, proto):
@@ -80,10 +80,10 @@ class MyTree(QObject):
         else:
             ret = self.SPACE*level+self.INDENT+self.name+"\n"
         #MyTreeは先に展開それ以外のデータはunfoldがTrueならばkeyをprint   
-        for key in sorted([key for key,value in self.getChildren().items() if isinstance(value,MyTree)]):
+        for key in sorted([key for key,value in list(self.getChildren().items()) if isinstance(value,MyTree)]):
             ret += self.__dict__[key].__str__(level=level+1,current=current,unfold=unfold)
         if unfold:
-            for key in sorted([key for key,value in self.getChildren().items() if not isinstance(value,MyTree)]):
+            for key in sorted([key for key,value in list(self.getChildren().items()) if not isinstance(value,MyTree)]):
                 ret += self.SPACE*(level+1)+repr(key)+"\n"
         return ret
     
@@ -95,7 +95,7 @@ class MyTree(QObject):
     
     def getChildren(self):
         #子供を{'名前':参照}で返す
-        children={k:v for k,v in self.__dict__.items() if not (k=='parent' or k=='name')}
+        children={k:v for k,v in list(self.__dict__.items()) if not (k=='parent' or k=='name')}
         return children
     
     def add(self,ref,label=None,check=False,signal=True):
@@ -106,7 +106,7 @@ class MyTree(QObject):
             val_name = stack[1].code_context[0].split('(')[1].split(')')[0] #これで実引数の名前を取得できるらしい
             label=val_name
             
-        if label in self.__dict__.keys():
+        if label in list(self.__dict__.keys()):
             raise Exception('same name already exists')
         if check:
             result=self.checkChildren(ref)
@@ -147,7 +147,7 @@ class MyTree(QObject):
         return target
         
     def rename(self,before,after,signal=True):
-        if (not before==after) and (not after in self.getChildren().keys()): #beforeとafterが違って afterが子供にいない時
+        if (not before==after) and (not after in list(self.getChildren().keys())): #beforeとafterが違って afterが子供にいない時
             ref=self.get(before)
             self.pop(before,signal=False) #ちなみにpopとaddを逆にすると挙動が変になる　popとaddでは同じオブジェクトを扱うがpopでシグナルをdisconnectしていることに注意
             self.add(ref,label=after,signal=False)
@@ -160,7 +160,7 @@ class MyTree(QObject):
     def checkChildren(self,ref):
         #子としてrefを持っていないかcheckする ref:オブジェクト参照
         result=[False,None]
-        for key,child in self.getChildren().items():
+        for key,child in list(self.getChildren().items()):
             if id(child)==id(ref):
                 result[0]=True
                 result[1]=key
@@ -181,7 +181,7 @@ class MyTree(QObject):
         #カレントディレクトリ移動のためのサーチなのでディレクトリだけ調べる target:文字列
         if self.name==target:
             return {'result':True,'path':[self.name]}
-        for child in self.getChildren().values():
+        for child in list(self.getChildren().values()):
             if isinstance(child,MyTree): #ディレクトリだけ調べる
                 answer=child.search(target)
                 if answer['result']:
@@ -193,7 +193,7 @@ class MyTree(QObject):
         #tree内を全ての参照のlistを返す
         mylist=[]
         mylist.append(self)
-        for child in self.getChildren().values():
+        for child in list(self.getChildren().values()):
             if isinstance(child,MyTree):
                 mylist=mylist+child.runAll()
             else:
@@ -252,7 +252,7 @@ class MyRootTree(MyTree):
     
     def getChildren(self):
         #子供を{'名前':参照}で返す self.currentも子供以外の要素に加わったのでオーバーライド
-        children={k:v for k,v in self.__dict__.items() if not (k=='parent' or k=='name' or k=='current')}
+        children={k:v for k,v in list(self.__dict__.items()) if not (k=='parent' or k=='name' or k=='current')}
         return children 
         
     def add_this(self,path,label,ref,signal=False):

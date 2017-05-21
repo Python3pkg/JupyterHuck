@@ -121,7 +121,7 @@ class MyTreeWidget(QMainWindow):
         else: #default 
             pickle.dump(self,open(self.setview.filepath,'wb'))
             print('Saved To::')
-            print(self.setview.filepath)
+            print((self.setview.filepath))
             
     def refresh(self):
         self.setview.resetView()
@@ -159,7 +159,7 @@ class MyTreeView(QTreeView):
         return geneMyTreeView,(self.model(),)
         
     def add(self,index=0):
-        if 'folder'+str(index) in self.cur.getChildren().keys(): #同じ名前がある場合
+        if 'folder'+str(index) in list(self.cur.getChildren().keys()): #同じ名前がある場合
             index+=1
             self.add(index)
         else:
@@ -255,7 +255,7 @@ class MyTreeView(QTreeView):
         else: #default 
             pickle.dump(self,open(self.filepath,'wb'))
             print('Saved To::')
-            print(self.filepath)
+            print((self.filepath))
 
 def geneMyTreeModel(tree):
     return MyTreeModel(tree)
@@ -414,7 +414,7 @@ class MyTreeModel(QStandardItemModel):
         else:
             folder=MyItemList(mytree.name,'folder')
             children=mytree.getChildren()
-            for key,item in children.items():
+            for key,item in list(children.items()):
                 if isinstance(item,MyTree.MyTree): #子供がフォルダーの場合
                     folder.addChild(self.convert(item))
                 else: #子供がデータだった場合
@@ -515,7 +515,7 @@ class MyTreeModel(QStandardItemModel):
         if isinstance(ref,MyTree.MyTree):
             children=ref.getChildren()
             graphs=[]
-            for child in children.values():
+            for child in list(children.values()):
                 if isinstance(child,MyGraphWindow):
                     graphs.append(child)
             return graphs
